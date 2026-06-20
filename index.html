@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#5c3a2b">
+<title>Daily Planner — Talib al-ʿIlm</title>
+
+<!-- Installable / offline app -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Planner">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%235c3a2b'/%3E%3Crect x='150' y='150' width='212' height='212' fill='none' stroke='%23e3c071' stroke-width='13'/%3E%3Crect x='150' y='150' width='212' height='212' fill='none' stroke='%23e3c071' stroke-width='13' transform='rotate(45 256 256)'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%235c3a2b'/%3E%3Crect x='150' y='150' width='212' height='212' fill='none' stroke='%23e3c071' stroke-width='13'/%3E%3Crect x='150' y='150' width='212' height='212' fill='none' stroke='%23e3c071' stroke-width='13' transform='rotate(45 256 256)'/%3E%3C/svg%3E">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Talib%20al-Ilm%20Daily%20Planner%22%2C%22short_name%22%3A%22Planner%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%235c3a2b%22%2C%22theme_color%22%3A%22%235c3a2b%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%253D%2527http%253A%252F%252Fwww.w3.org%252F2000%252Fsvg%2527%2520viewBox%253D%25270%25200%2520512%2520512%2527%253E%253Crect%2520width%253D%2527512%2527%2520height%253D%2527512%2527%2520rx%253D%2527112%2527%2520fill%253D%2527%25235c3a2b%2527%252F%253E%253Crect%2520x%253D%2527150%2527%2520y%253D%2527150%2527%2520width%253D%2527212%2527%2520height%253D%2527212%2527%2520fill%253D%2527none%2527%2520stroke%253D%2527%2523e3c071%2527%2520stroke-width%253D%252713%2527%252F%253E%253C%252Fsvg%253E%22%2C%22sizes%22%3A%22any%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=IBM+Plex+Mono:wght@300;400;500&family=Noto+Naskh+Arabic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --panel:rgba(22,12,7,.26);
+  --border:rgba(232,201,122,.22);
+  --border2:rgba(232,201,122,.36);
+  --sep:rgba(0,0,0,.16);
+  --gold:#e3c071;
+  --gold2:#f3d98c;
+  --cream:#f4ede1;
+  --soft:#e4d6c2;
+  --muted:#c4ae95;
+  --done:#7ff0b6;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:
+    radial-gradient(110% 48% at 50% 0%, rgba(196,134,98,.26), transparent 60%),
+    linear-gradient(180deg,#7a4d3a 0%,#65402f 55%,#573626 100%);
+  background-color:#5c3a2b;
+  color:var(--cream);
+  font-family:'IBM Plex Mono',monospace;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  padding:max(30px,env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom));
+}
+.wrap{max-width:540px;margin:0 auto}
+
+/* Header */
+.eyebrow{font-size:9.5px;letter-spacing:.42em;color:var(--gold);text-transform:uppercase;
+  text-align:center;opacity:.9;margin-bottom:10px;padding-inline-start:.42em}
+h1{font-family:'Cinzel',serif;font-weight:500;font-size:clamp(27px,7.5vw,36px);
+  letter-spacing:.02em;text-align:center;color:var(--gold2);line-height:1.08}
+.tagline{text-align:center;font-size:10.5px;letter-spacing:.16em;color:var(--muted);
+  text-transform:uppercase;margin-top:12px}
+.tag-ar{font-family:'Noto Naskh Arabic',serif;font-size:13px;letter-spacing:0;color:var(--gold);
+  text-transform:none;direction:rtl;display:inline-block;margin-inline-start:5px;vertical-align:-1px}
+
+/* Overall progress */
+.overall{margin:30px 4px 26px}
+.overall-top{display:flex;justify-content:space-between;align-items:baseline;
+  font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.overall-top b{color:var(--gold2);font-weight:500}
+.bar{height:3px;background:rgba(0,0,0,.2);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--gold2));
+  border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* Prayer block — clean card, no overlay glow */
+.block{position:relative;background:var(--panel);border:1px solid var(--border);
+  border-radius:13px;padding:15px 16px 8px;padding-inline-start:19px;margin-bottom:13px;overflow:hidden}
+.block::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.bhead{display:flex;align-items:center;gap:11px;margin-bottom:11px}
+.pname{font-family:'Cinzel',serif;font-size:14.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--accent)}
+.bcount{margin-inline-start:auto;font-size:10px;letter-spacing:.1em;color:var(--muted);font-variant-numeric:tabular-nums}
+.bcount b{color:var(--accent);font-weight:500}
+
+/* Tasks */
+.tasks{list-style:none}
+.task{display:flex;align-items:flex-start;gap:11px;padding:8px 2px;border-top:1px solid var(--sep)}
+.task:first-child{border-top:none}
+.check{flex-shrink:0;width:17px;height:17px;margin-top:1px;border:1.5px solid var(--border2);
+  border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:border-color .2s,background .2s;background:transparent}
+.check svg{width:10px;height:10px;opacity:0;transform:scale(.5);transition:opacity .2s,transform .2s}
+.check:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.task.done .check{background:var(--accent);border-color:var(--accent)}
+.task.done .check svg{opacity:1;transform:scale(1)}
+.ttext{flex:1;font-size:13px;line-height:1.45;color:var(--cream);word-break:break-word;cursor:text;transition:color .2s,opacity .2s}
+.task.done .ttext{color:var(--muted);text-decoration:line-through;
+  text-decoration-color:color-mix(in srgb,var(--accent) 60%,transparent);opacity:.7}
+.tedit{flex:1;font-family:inherit;font-size:13px;line-height:1.45;color:var(--cream);
+  background:transparent;border:none;border-bottom:1px solid var(--accent);padding:0 0 2px;outline:none}
+.del{flex-shrink:0;width:20px;height:20px;border:none;background:transparent;color:var(--muted);
+  font-size:15px;cursor:pointer;opacity:0;transition:opacity .2s,color .2s;line-height:1;display:flex;align-items:center;justify-content:center}
+.task:hover .del,.task:focus-within .del{opacity:.7}
+.del:hover{color:#f0a07a;opacity:1}
+.del:focus-visible{outline:2px solid var(--gold);outline-offset:1px;opacity:1}
+
+/* Add row */
+.addrow{display:flex;align-items:center;gap:11px;padding:9px 2px 7px;border-top:1px solid var(--sep);margin-top:2px}
+.addrow:first-child{border-top:none}
+.plus{flex-shrink:0;width:17px;height:17px;color:var(--accent);font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:.8}
+.addinput{flex:1;font-family:inherit;font-size:13px;color:var(--cream);background:transparent;border:none;outline:none;padding:2px 0}
+.addinput::placeholder{color:var(--muted);opacity:.7}
+
+/* Footer toolbar */
+.foot{margin-top:24px;display:flex;flex-direction:column;align-items:center;gap:18px}
+.tools{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.tool{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--soft);background:var(--panel);border:1px solid var(--border);border-radius:20px;
+  padding:8px 16px;cursor:pointer;transition:border-color .2s,color .2s}
+.tool:hover{border-color:var(--border2);color:var(--gold2)}
+.tool:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.tool.danger:hover{color:#f0a07a;border-color:rgba(240,160,122,.4)}
+.tool:disabled{opacity:.35;pointer-events:none}
+.athar{text-align:center;font-size:10px;letter-spacing:.05em;color:var(--muted);max-width:300px;line-height:1.7;opacity:.85;margin-top:4px}
+.athar .ar{font-family:'Noto Naskh Arabic',serif;font-size:13.5px;color:var(--gold);display:block;direction:rtl;margin-bottom:6px}
+
+/* Language switcher */
+.langbtn{position:fixed;top:calc(12px + env(safe-area-inset-top));right:14px;z-index:60;
+  width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--panel);
+  color:var(--gold);display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:border-color .2s,color .2s}
+.langbtn svg{width:19px;height:19px}
+.langbtn:hover{border-color:var(--border2);color:var(--gold2)}
+.langbtn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.langmenu{position:fixed;top:calc(57px + env(safe-area-inset-top));right:14px;z-index:60;
+  background:linear-gradient(180deg,rgba(38,23,14,.98),rgba(26,15,9,.98));
+  border:1px solid var(--border2);border-radius:12px;padding:6px;min-width:142px;
+  box-shadow:0 12px 36px -8px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:2px}
+.langmenu[hidden]{display:none}
+.langmenu button{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.04em;
+  color:var(--soft);background:transparent;border:none;border-radius:8px;padding:9px 12px;
+  text-align:start;cursor:pointer;transition:background .15s,color .15s}
+.langmenu button:hover{background:rgba(255,255,255,.05);color:var(--gold2)}
+.langmenu button.active{color:var(--gold2);background:rgba(227,192,113,.1)}
+
+/* Arabic (RTL) typography — Cinzel/uppercase/letter-spacing don't suit Arabic */
+html[dir="rtl"] .eyebrow,html[dir="rtl"] .tagline,html[dir="rtl"] .overall-top,
+html[dir="rtl"] .tool,html[dir="rtl"] .dd-en,html[dir="rtl"] .pname{letter-spacing:0;text-transform:none}
+html[dir="rtl"] h1,html[dir="rtl"] .pname,html[dir="rtl"] .eyebrow,html[dir="rtl"] .tagline{font-family:'Noto Naskh Arabic',serif}
+html[dir="rtl"] .pname{font-size:16px}
+html[dir="rtl"] .eyebrow{font-size:12px}
+
+@media (max-width:420px){ body{padding-left:13px;padding-right:13px} }
+/* ── Completion feedback ── */
+.overall.complete .overall-top{color:var(--gold2)}
+.overall.complete .bar-fill{box-shadow:0 0 12px -1px rgba(243,217,140,.7)}
+
+.block.complete{border-color:color-mix(in srgb,var(--accent) 55%,var(--border))}
+.block.complete::before{box-shadow:0 0 14px -1px var(--accent)}
+.block.complete .bcount{color:var(--accent)}
+.block.complete .bcount::after{content:" ✓";color:var(--accent);font-weight:500}
+.block.pulse{animation:blockPulse .65s cubic-bezier(.34,1.4,.6,1)}
+@keyframes blockPulse{
+  0%{box-shadow:0 0 0 0 transparent}
+  35%{box-shadow:0 0 26px -4px color-mix(in srgb,var(--accent) 80%,transparent);transform:translateY(-2px)}
+  100%{box-shadow:0 0 0 0 transparent;transform:translateY(0)}
+}
+
+/* Day-complete toast */
+.daydone{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));
+  transform:translate(-50%,24px);opacity:0;pointer-events:none;z-index:50;
+  background:linear-gradient(180deg,rgba(36,22,13,.97),rgba(26,15,9,.97));
+  border:1px solid var(--border2);border-radius:14px;padding:14px 24px;text-align:center;
+  box-shadow:0 10px 40px -8px rgba(0,0,0,.6),0 0 24px -6px rgba(227,192,113,.4);
+  transition:opacity .5s ease,transform .5s cubic-bezier(.34,1.3,.6,1);max-width:88vw}
+.daydone.show{opacity:1;transform:translate(-50%,0)}
+.daydone .dd-ar{font-family:'Noto Naskh Arabic',serif;font-size:18px;color:var(--gold2);display:block;direction:rtl}
+.daydone .dd-en{font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--soft);margin-top:6px;display:block}
+
+/* Day-complete golden flash (one-shot) */
+.flash{position:fixed;inset:0;pointer-events:none;z-index:40;opacity:0;
+  background:radial-gradient(120% 80% at 50% 50%,rgba(243,217,140,.16),transparent 65%)}
+.flash.go{animation:flashGlow 1.1s ease-out}
+@keyframes flashGlow{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+
+@media (prefers-reduced-motion:reduce){ *{transition-duration:.01ms!important;animation-duration:.01ms!important} }
+</style>
+</head>
+<body>
+<button id="langBtn" class="langbtn" aria-label="Language" aria-haspopup="true">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15.5 0 18M12 3c-2.5 2.5-2.5 15.5 0 18"/></svg>
+</button>
+<div id="langMenu" class="langmenu" hidden>
+  <button data-lang="en">English</button>
+  <button data-lang="ar">العربية</button>
+  <button data-lang="de">Deutsch</button>
+</div>
+<div class="wrap">
+  <div class="eyebrow" id="eyebrow">Ṭālib al-ʿIlm</div>
+  <h1 id="title">Daily Planner</h1>
+  <div class="tagline"><span id="tagText">Order your day around the prayers</span> <span class="tag-ar">إن شاء الله</span></div>
+
+  <div class="overall">
+    <div class="overall-top"><span id="progLabel">Progress</span><span><b id="ovDone">0</b> / <span id="ovTotal">0</span></span></div>
+    <div class="bar"><div class="bar-fill" id="ovBar"></div></div>
+  </div>
+
+  <div id="blocks"></div>
+
+  <div class="foot">
+    <div class="tools">
+      <button class="tool" id="exportBtn">Export</button>
+      <button class="tool" id="importBtn">Import</button>
+      <button class="tool danger" id="clearDone">Clear completed</button>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+    <div class="athar">
+      <span class="ar">بَادِرُوا بِالأَعْمَالِ</span>
+      Hasten to good deeds — seize your time before it slips away.
+    </div>
+  </div>
+</div>
+
+<div id="flash" class="flash" aria-hidden="true"></div>
+<div id="dayDone" class="daydone" role="status" aria-live="polite">
+  <span class="dd-ar">الحمد لله</span>
+  <span class="dd-en">Every task complete</span>
+</div>
+
+<script>
+"use strict";
+const PERIODS=[
+  {key:"beforeFajr", accent:"#6a6da8"},
+  {key:"fajrDhuhr",  accent:"#6f93b4"},
+  {key:"dhuhrAsr",   accent:"#e6c873"},
+  {key:"asrMaghrib", accent:"#d9a25f"},
+  {key:"maghribIsha",accent:"#d27a5c"},
+  {key:"afterIsha",  accent:"#8186bd"}
+];
+const I18N={
+  en:{dir:"ltr",label:"English",eyebrow:"Ṭālib al-ʿIlm",title:"Daily Planner",
+      tagline:"Order your day around the prayers",progress:"Progress",addTask:"Add a task",
+      export:"Export",import:"Import",clearDone:"Clear completed",doneMsg:"Every task complete",
+      periods:["Before Fajr","Fajr – Dhuhr","Dhuhr – Asr","Asr – Maghrib","Maghrib – Isha","After Isha"]},
+  ar:{dir:"rtl",label:"العربية",eyebrow:"طالب العلم",title:"المُنظِّم اليومي",
+      tagline:"رتِّب يومك حول الصلوات",progress:"التقدّم",addTask:"أضِف مهمة",
+      export:"تصدير",import:"استيراد",clearDone:"مسح المُنجَز",doneMsg:"اكتملت جميع المهام",
+      periods:["قبل الفجر","الفجر – الظهر","الظهر – العصر","العصر – المغرب","المغرب – العشاء","بعد العشاء"]},
+  de:{dir:"ltr",label:"Deutsch",eyebrow:"Ṭālib al-ʿIlm",title:"Tagesplaner",
+      tagline:"Ordne deinen Tag um die Gebete",progress:"Fortschritt",addTask:"Aufgabe hinzufügen",
+      export:"Exportieren",import:"Importieren",clearDone:"Erledigte löschen",doneMsg:"Alle Aufgaben erledigt",
+      periods:["Vor Fajr","Fajr – Dhuhr","Dhuhr – Asr","Asr – Maghrib","Maghrib – Ischa","Nach Ischa"]}
+};
+const LANG_STORE="talib_planner_lang";
+let LANG=(function(){try{const l=localStorage.getItem(LANG_STORE);return I18N[l]?l:"en";}catch(e){return "en";}})();
+function T(){return I18N[LANG];}
+const STORE="talib_planner_v3";
+const CHECK_SVG='<svg viewBox="0 0 12 12" fill="none" stroke="#2a1a10" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5L5 9l4.5-5"/></svg>';
+
+let DATA=load();
+
+function blank(){const o={};PERIODS.forEach(p=>o[p.key]=[]);return o;}
+function load(){
+  try{
+    const d=JSON.parse(localStorage.getItem(STORE)||"null");
+    if(!d||typeof d!=="object")return blank();
+    const o=blank();
+    PERIODS.forEach(p=>{if(Array.isArray(d[p.key]))o[p.key]=d[p.key].filter(t=>t&&typeof t.t==="string")
+      .map(t=>({id:t.id||uid(),t:String(t.t).slice(0,200),done:!!t.done}));});
+    return o;
+  }catch(e){return blank();}
+}
+function save(){try{localStorage.setItem(STORE,JSON.stringify(DATA));}catch(e){}}
+function uid(){try{return crypto.randomUUID();}catch(e){return Date.now()+"-"+Math.random().toString(36).slice(2,8);}}
+
+/* ── Render ── */
+function render(){
+  const root=document.getElementById("blocks");
+  root.innerHTML="";
+  PERIODS.forEach((p,i)=>{
+    const list=DATA[p.key];
+    const done=list.filter(t=>t.done).length;
+    const name=T().periods[i];
+    const block=document.createElement("div");
+    block.className="block";block.style.setProperty("--accent",p.accent);
+    block.innerHTML=
+      `<div class="bhead">
+        <span class="pname">${name}</span>
+        <span class="bcount"><b>${done}</b> / ${list.length}</span>
+      </div>
+      <ul class="tasks"></ul>
+      <div class="addrow">
+        <span class="plus">+</span>
+        <input class="addinput" type="text" maxlength="160" placeholder="${T().addTask}" aria-label="${T().addTask} — ${name}">
+      </div>`;
+    const ul=block.querySelector(".tasks");
+    list.forEach(t=>ul.appendChild(taskEl(p,t)));
+    const input=block.querySelector(".addinput");
+    input.addEventListener("keydown",e=>{
+      if(e.key==="Enter"&&input.value.trim()){addTask(p.key,input.value.trim());input.value="";}
+    });
+    root.appendChild(block);
+  });
+  updateOverall();
+  applyCompletionStates(false);
+}
+function taskEl(p,t){
+  const li=document.createElement("li");
+  li.className="task"+(t.done?" done":"");li.dataset.id=t.id;
+  const check=document.createElement("button");
+  check.className="check";check.setAttribute("aria-label",t.done?"Mark as not done":"Mark as done");
+  check.innerHTML=CHECK_SVG;
+  check.addEventListener("click",()=>toggleTask(p,t.id,li,check));
+  const span=document.createElement("div");
+  span.className="ttext";span.textContent=t.t;span.title="Click to edit";
+  span.addEventListener("click",()=>editTask(p,t,li,span));
+  const del=document.createElement("button");
+  del.className="del";del.setAttribute("aria-label","Delete task");del.textContent="×";
+  del.addEventListener("click",()=>deleteTask(p.key,t.id,li));
+  li.append(check,span,del);
+  return li;
+}
+
+/* ── Mutations (auto-save) ── */
+function addTask(pkey,text){DATA[pkey].push({id:uid(),t:text,done:false});save();render();}
+function toggleTask(p,id,li,check){
+  const t=DATA[p.key].find(x=>x.id===id);if(!t)return;
+  t.done=!t.done;save();
+  li.classList.toggle("done",t.done);
+  check.setAttribute("aria-label",t.done?"Mark as not done":"Mark as done");
+  updateCounts();
+  applyCompletionStates(true);
+}
+function deleteTask(pkey,id,li){
+  li.style.transition="opacity .18s,transform .18s";li.style.opacity="0";li.style.transform="translateX(-6px)";
+  setTimeout(()=>{const i=DATA[pkey].findIndex(x=>x.id===id);if(i>-1)DATA[pkey].splice(i,1);save();render();},170);
+}
+function editTask(p,t,li,span){
+  if(li.querySelector(".tedit"))return;
+  const input=document.createElement("input");
+  input.className="tedit";input.value=t.t;input.maxLength=160;
+  span.replaceWith(input);input.focus();
+  const n=input.value.length;input.setSelectionRange(n,n);
+  const commit=()=>{const v=input.value.trim();if(v){t.t=v;save();}render();};
+  input.addEventListener("keydown",e=>{if(e.key==="Enter")commit();else if(e.key==="Escape")render();});
+  input.addEventListener("blur",commit);
+}
+
+/* ── Counts / progress ── */
+function updateCounts(){
+  document.querySelectorAll(".block").forEach((bl,i)=>{
+    const list=DATA[PERIODS[i].key];const done=list.filter(t=>t.done).length;
+    bl.querySelector(".bcount").innerHTML=`<b>${done}</b> / ${list.length}`;
+  });
+  updateOverall();
+}
+function updateOverall(){
+  let total=0,done=0;
+  PERIODS.forEach(p=>{total+=DATA[p.key].length;done+=DATA[p.key].filter(t=>t.done).length;});
+  document.getElementById("ovDone").textContent=done;
+  document.getElementById("ovTotal").textContent=total;
+  document.getElementById("ovBar").style.width=(total?Math.round(done/total*100):0)+"%";
+  document.getElementById("clearDone").disabled=done===0;
+}
+
+/* ── Completion feedback ── */
+let _prev={day:false};PERIODS.forEach(p=>_prev[p.key]=false);
+let _ddTimer=null;
+function applyCompletionStates(animate){
+  const blocks=document.querySelectorAll(".block");
+  let total=0,done=0;
+  PERIODS.forEach((p,i)=>{
+    const list=DATA[p.key];
+    total+=list.length;done+=list.filter(t=>t.done).length;
+    const complete=list.length>0&&list.every(t=>t.done);
+    const bl=blocks[i];
+    if(bl){
+      bl.classList.toggle("complete",complete);
+      if(animate&&complete&&!_prev[p.key])pulse(bl);
+    }
+    _prev[p.key]=complete;
+  });
+  const dayComplete=total>0&&done===total;
+  const ov=document.querySelector(".overall");
+  if(ov)ov.classList.toggle("complete",dayComplete);
+  const dd=document.getElementById("dayDone");
+  if(dayComplete){ if(animate&&!_prev.day)celebrateDay(); }
+  else if(dd){dd.classList.remove("show");}
+  _prev.day=dayComplete;
+}
+function pulse(bl){
+  bl.classList.remove("pulse");void bl.offsetWidth;bl.classList.add("pulse");
+  setTimeout(()=>bl.classList.remove("pulse"),720);
+}
+function celebrateDay(){
+  const dd=document.getElementById("dayDone");
+  dd.classList.add("show");
+  clearTimeout(_ddTimer);_ddTimer=setTimeout(()=>dd.classList.remove("show"),4500);
+  const fl=document.getElementById("flash");
+  fl.classList.remove("go");void fl.offsetWidth;fl.classList.add("go");
+}
+
+/* ── Export / Import ── */
+function exportData(){
+  const blob=new Blob([JSON.stringify({app:"talib-planner",v:2,tasks:DATA},null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download="daily-planner.json";
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+function importData(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const p=JSON.parse(ev.target.result);
+      const src=(p&&p.tasks)?p.tasks:p;
+      if(!src||typeof src!=="object")throw 0;
+      const clean=blank();
+      PERIODS.forEach(pr=>{
+        if(Array.isArray(src[pr.key]))clean[pr.key]=src[pr.key]
+          .filter(t=>t&&typeof t.t==="string")
+          .map(t=>({id:t.id||uid(),t:String(t.t).slice(0,200),done:!!t.done}));
+      });
+      DATA=clean;save();render();
+    }catch(err){alert("That file isn't a valid planner export.");}
+    e.target.value="";
+  };
+  r.readAsText(f);
+}
+
+/* ── Language ── */
+function applyLang(lang){
+  if(!I18N[lang])lang="en";
+  LANG=lang;
+  try{localStorage.setItem(LANG_STORE,lang);}catch(e){}
+  const t=I18N[lang];
+  const root=document.documentElement;
+  root.lang=lang;root.dir=t.dir;
+  document.getElementById("eyebrow").textContent=t.eyebrow;
+  document.getElementById("title").textContent=t.title;
+  document.getElementById("tagText").textContent=t.tagline;
+  document.getElementById("progLabel").textContent=t.progress;
+  document.getElementById("exportBtn").textContent=t.export;
+  document.getElementById("importBtn").textContent=t.import;
+  document.getElementById("clearDone").textContent=t.clearDone;
+  document.querySelector(".dd-en").textContent=t.doneMsg;
+  document.querySelectorAll("#langMenu button").forEach(b=>b.classList.toggle("active",b.dataset.lang===lang));
+  render();
+}
+
+/* ── Wiring ── */
+document.getElementById("exportBtn").addEventListener("click",exportData);
+document.getElementById("importBtn").addEventListener("click",()=>document.getElementById("importFile").click());
+document.getElementById("importFile").addEventListener("change",importData);
+document.getElementById("clearDone").addEventListener("click",()=>{
+  PERIODS.forEach(p=>{DATA[p.key]=DATA[p.key].filter(t=>!t.done);});save();render();
+});
+const langBtn=document.getElementById("langBtn"),langMenu=document.getElementById("langMenu");
+langBtn.addEventListener("click",e=>{e.stopPropagation();langMenu.hidden=!langMenu.hidden;});
+langMenu.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{applyLang(b.dataset.lang);langMenu.hidden=true;}));
+document.addEventListener("click",e=>{if(!langMenu.hidden&&!langMenu.contains(e.target)&&e.target!==langBtn)langMenu.hidden=true;});
+
+applyLang(LANG);
+</script>
+</body>
+</html>
