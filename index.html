@@ -184,13 +184,12 @@ html[dir="rtl"] .eyebrow{font-size:12px}
 </button>
 <div id="langMenu" class="langmenu" hidden>
   <button data-lang="en">English</button>
-  <button data-lang="ar">العربية</button>
   <button data-lang="de">Deutsch</button>
 </div>
 <div class="wrap">
   <div class="eyebrow" id="eyebrow">Ṭālib al-ʿIlm</div>
   <h1 id="title">Miqāt</h1>
-  <div class="tagline"><span id="tagText">Order your day around the prayers</span> <span class="tag-ar">إن شاء الله</span></div>
+  <div class="tagline"><span id="tagText">Order your day around the prayers</span></div>
 
   <div class="overall">
     <div class="overall-top"><span id="progLabel">Progress</span><span><b id="ovDone">0</b> / <span id="ovTotal">0</span></span></div>
@@ -207,7 +206,6 @@ html[dir="rtl"] .eyebrow{font-size:12px}
       <input type="file" id="importFile" accept="application/json,.json" hidden>
     </div>
     <div class="athar">
-      <span class="ar">بَادِرُوا بِالأَعْمَالِ</span>
       Hasten to good deeds — seize your time before it slips away.
     </div>
   </div>
@@ -215,7 +213,6 @@ html[dir="rtl"] .eyebrow{font-size:12px}
 
 <div id="flash" class="flash" aria-hidden="true"></div>
 <div id="dayDone" class="daydone" role="status" aria-live="polite">
-  <span class="dd-ar">الحمد لله</span>
   <span class="dd-en">Every task complete</span>
 </div>
 
@@ -234,10 +231,6 @@ const I18N={
       tagline:"Order your day around the prayers",progress:"Progress",addTask:"Add a task",
       export:"Export",import:"Import",clearDone:"Clear completed",doneMsg:"Every task complete",
       periods:["Before Fajr","Fajr – Dhuhr","Dhuhr – Asr","Asr – Maghrib","Maghrib – Isha","After Isha"]},
-  ar:{dir:"rtl",label:"العربية",eyebrow:"طالب العلم",title:"المُنظِّم اليومي",
-      tagline:"رتِّب يومك حول الصلوات",progress:"التقدّم",addTask:"أضِف مهمة",
-      export:"تصدير",import:"استيراد",clearDone:"مسح المُنجَز",doneMsg:"اكتملت جميع المهام",
-      periods:["قبل الفجر","الفجر – الظهر","الظهر – العصر","العصر – المغرب","المغرب – العشاء","بعد العشاء"]},
   de:{dir:"ltr",label:"Deutsch",eyebrow:"Ṭālib al-ʿIlm",title:"Miqāt",
       tagline:"Ordne deinen Tag um die Gebete",progress:"Fortschritt",addTask:"Aufgabe hinzufügen",
       export:"Exportieren",import:"Importieren",clearDone:"Erledigte löschen",doneMsg:"Alle Aufgaben erledigt",
