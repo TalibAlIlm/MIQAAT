@@ -32,7 +32,8 @@
   --done:#7ff0b6;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;touch-action:manipulation}
+button,input{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 body{
   background:
     radial-gradient(110% 48% at 50% 0%, rgba(196,134,98,.26), transparent 60%),
@@ -44,6 +45,7 @@ body{
   -webkit-font-smoothing:antialiased;
   padding:max(30px,env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom));
 }
+body.dragging-now{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .wrap{max-width:540px;margin:0 auto}
 
 /* Header */
@@ -67,48 +69,80 @@ h1{font-family:'Cinzel',serif;font-weight:500;font-size:clamp(27px,7.5vw,36px);
 
 /* Prayer block — clean card, no overlay glow */
 .block{position:relative;background:var(--panel);border:1px solid var(--border);
-  border-radius:13px;padding:15px 16px 8px;padding-inline-start:19px;margin-bottom:13px;overflow:hidden}
+  border-radius:13px;padding:15px 14px 8px;padding-inline-start:16px;margin-bottom:13px;overflow:hidden}
 .block::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:3px;background:var(--accent)}
-.bhead{display:flex;align-items:center;gap:11px;margin-bottom:11px}
+.bhead{display:flex;align-items:center;gap:11px;margin-bottom:8px}
 .pname{font-family:'Cinzel',serif;font-size:14.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--accent)}
 .bcount{margin-inline-start:auto;font-size:10px;letter-spacing:.1em;color:var(--muted);font-variant-numeric:tabular-nums}
 .bcount b{color:var(--accent);font-weight:500}
 
 /* Tasks */
-.tasks{list-style:none}
-.task{display:flex;align-items:flex-start;gap:11px;padding:8px 2px;border-top:1px solid var(--sep)}
+.tasks{list-style:none;min-height:2px}
+.task{display:flex;align-items:center;gap:10px;padding:7px 0;min-height:46px;border-top:1px solid var(--sep)}
 .task:first-child{border-top:none}
-.check{flex-shrink:0;width:17px;height:17px;margin-top:1px;border:1.5px solid var(--border2);
-  border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:border-color .2s,background .2s;background:transparent}
-.check svg{width:10px;height:10px;opacity:0;transform:scale(.5);transition:opacity .2s,transform .2s}
+
+/* Drag handle */
+.handle{flex-shrink:0;width:26px;height:34px;margin-inline-start:-6px;border:none;background:transparent;
+  color:var(--muted);opacity:.45;cursor:grab;display:flex;align-items:center;justify-content:center;
+  border-radius:7px;touch-action:none;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;
+  transition:opacity .2s,color .2s}
+.handle svg{width:13px;height:13px;pointer-events:none}
+.handle:hover{opacity:.9;color:var(--gold)}
+.handle:active{cursor:grabbing}
+.handle:focus-visible{outline:2px solid var(--gold);outline-offset:1px;opacity:1}
+
+.check{flex-shrink:0;width:23px;height:23px;border:1.5px solid var(--border2);
+  border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:border-color .2s,background .2s;background:transparent;position:relative}
+.check::after{content:"";position:absolute;inset:-8px -5px}  /* enlarged hit area, no overlap with handle/text */
+.check svg{width:12px;height:12px;opacity:0;transform:scale(.5);transition:opacity .2s,transform .2s}
 .check:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .task.done .check{background:var(--accent);border-color:var(--accent)}
 .task.done .check svg{opacity:1;transform:scale(1)}
-.ttext{flex:1;font-size:13px;line-height:1.45;color:var(--cream);word-break:break-word;cursor:text;transition:color .2s,opacity .2s}
+.ttext{flex:1;font-size:15px;line-height:1.45;color:var(--cream);word-break:break-word;cursor:text;
+  padding:4px 0;transition:color .2s,opacity .2s}
 .task.done .ttext{color:var(--muted);text-decoration:line-through;
   text-decoration-color:color-mix(in srgb,var(--accent) 60%,transparent);opacity:.7}
-.tedit{flex:1;font-family:inherit;font-size:13px;line-height:1.45;color:var(--cream);
+.tedit{flex:1;font-family:inherit;font-size:16px;line-height:1.45;color:var(--cream);min-width:0;
   background:transparent;border:none;border-bottom:1px solid var(--accent);padding:0 0 2px;outline:none}
-.del{flex-shrink:0;width:20px;height:20px;border:none;background:transparent;color:var(--muted);
-  font-size:15px;cursor:pointer;opacity:0;transition:opacity .2s,color .2s;line-height:1;display:flex;align-items:center;justify-content:center}
+.del{flex-shrink:0;width:32px;height:34px;border:none;background:transparent;color:var(--muted);
+  font-size:19px;cursor:pointer;opacity:0;transition:opacity .2s,color .2s;line-height:1;
+  display:flex;align-items:center;justify-content:center;border-radius:7px;margin-inline-end:-6px}
 .task:hover .del,.task:focus-within .del{opacity:.7}
 .del:hover{color:#f0a07a;opacity:1}
 .del:focus-visible{outline:2px solid var(--gold);outline-offset:1px;opacity:1}
+@media (hover:none){ .del{opacity:.5} .handle{opacity:.6} }
+
+/* Drag states */
+.task.dragging{opacity:.3}
+.drag-ghost{position:fixed;z-index:80;pointer-events:none;left:0;top:0;
+  background:linear-gradient(180deg,rgba(40,24,14,.97),rgba(28,16,9,.97));
+  border:1px solid var(--border2);border-radius:11px;padding:10px 15px;
+  font-family:'IBM Plex Mono',monospace;font-size:14px;line-height:1.4;color:var(--cream);
+  box-shadow:0 14px 36px -8px rgba(0,0,0,.65),0 0 18px -6px rgba(227,192,113,.35);
+  max-width:min(78vw,380px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transform:translate(-50%,-130%)}
+.drop-line{position:absolute;height:3px;border-radius:2px;background:var(--gold2);
+  box-shadow:0 0 10px rgba(243,217,140,.65);opacity:0;pointer-events:none;z-index:70}
+.block.drop-target{border-color:var(--border2)}
 
 /* Add row */
-.addrow{display:flex;align-items:center;gap:11px;padding:9px 2px 7px;border-top:1px solid var(--sep);margin-top:2px}
+.addrow{display:flex;align-items:center;gap:10px;padding:5px 0 4px;min-height:44px;border-top:1px solid var(--sep);margin-top:2px}
 .addrow:first-child{border-top:none}
-.plus{flex-shrink:0;width:17px;height:17px;color:var(--accent);font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:.8}
-.addinput{flex:1;font-family:inherit;font-size:13px;color:var(--cream);background:transparent;border:none;outline:none;padding:2px 0}
-.addinput::placeholder{color:var(--muted);opacity:.7}
+.plus{flex-shrink:0;width:26px;height:34px;margin-inline-start:-6px;border:none;background:transparent;
+  color:var(--accent);font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center;
+  opacity:.8;cursor:pointer;border-radius:7px;transition:opacity .2s}
+.plus:hover{opacity:1}
+.plus:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.addinput{flex:1;font-family:inherit;font-size:16px;color:var(--cream);background:transparent;border:none;outline:none;padding:6px 0;min-width:0}
+.addinput::placeholder{color:var(--muted);opacity:.7;font-size:14px}
 
 /* Footer toolbar */
 .foot{margin-top:24px;display:flex;flex-direction:column;align-items:center;gap:18px}
 .tools{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .tool{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;
   color:var(--soft);background:var(--panel);border:1px solid var(--border);border-radius:20px;
-  padding:8px 16px;cursor:pointer;transition:border-color .2s,color .2s}
+  padding:10px 16px;cursor:pointer;transition:border-color .2s,color .2s}
 .tool:hover{border-color:var(--border2);color:var(--gold2)}
 .tool:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .tool.danger:hover{color:#f0a07a;border-color:rgba(240,160,122,.4)}
@@ -118,19 +152,19 @@ h1{font-family:'Cinzel',serif;font-weight:500;font-size:clamp(27px,7.5vw,36px);
 
 /* Language switcher */
 .langbtn{position:fixed;top:calc(12px + env(safe-area-inset-top));right:14px;z-index:60;
-  width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--panel);
+  width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--panel);
   color:var(--gold);display:flex;align-items:center;justify-content:center;cursor:pointer;
   transition:border-color .2s,color .2s}
 .langbtn svg{width:19px;height:19px}
 .langbtn:hover{border-color:var(--border2);color:var(--gold2)}
 .langbtn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.langmenu{position:fixed;top:calc(57px + env(safe-area-inset-top));right:14px;z-index:60;
+.langmenu{position:fixed;top:calc(59px + env(safe-area-inset-top));right:14px;z-index:60;
   background:linear-gradient(180deg,rgba(38,23,14,.98),rgba(26,15,9,.98));
   border:1px solid var(--border2);border-radius:12px;padding:6px;min-width:142px;
   box-shadow:0 12px 36px -8px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:2px}
 .langmenu[hidden]{display:none}
-.langmenu button{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.04em;
-  color:var(--soft);background:transparent;border:none;border-radius:8px;padding:9px 12px;
+.langmenu button{font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.04em;
+  color:var(--soft);background:transparent;border:none;border-radius:8px;padding:11px 12px;
   text-align:start;cursor:pointer;transition:background .15s,color .15s}
 .langmenu button:hover{background:rgba(255,255,255,.05);color:var(--gold2)}
 .langmenu button.active{color:var(--gold2);background:rgba(227,192,113,.1)}
@@ -142,7 +176,7 @@ html[dir="rtl"] h1,html[dir="rtl"] .pname,html[dir="rtl"] .eyebrow,html[dir="rtl
 html[dir="rtl"] .pname{font-size:16px}
 html[dir="rtl"] .eyebrow{font-size:12px}
 
-@media (max-width:420px){ body{padding-left:13px;padding-right:13px} }
+@media (max-width:420px){ body{padding-left:12px;padding-right:12px} }
 /* ── Completion feedback ── */
 .overall.complete .overall-top{color:var(--gold2)}
 .overall.complete .bar-fill{box-shadow:0 0 12px -1px rgba(243,217,140,.7)}
@@ -166,8 +200,8 @@ html[dir="rtl"] .eyebrow{font-size:12px}
   box-shadow:0 10px 40px -8px rgba(0,0,0,.6),0 0 24px -6px rgba(227,192,113,.4);
   transition:opacity .5s ease,transform .5s cubic-bezier(.34,1.3,.6,1);max-width:88vw}
 .daydone.show{opacity:1;transform:translate(-50%,0)}
-.daydone .dd-ar{font-family:'Noto Naskh Arabic',serif;font-size:18px;color:var(--gold2);display:block;direction:rtl}
-.daydone .dd-en{font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--soft);margin-top:6px;display:block}
+.daydone .dd-ar{font-family:'Noto Naskh Arabic',serif;font-size:20px;color:var(--gold2);display:block;direction:rtl;margin-top:8px}
+.daydone .dd-en{font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--soft);display:block}
 
 /* Day-complete golden flash (one-shot) */
 .flash{position:fixed;inset:0;pointer-events:none;z-index:40;opacity:0;
@@ -214,6 +248,7 @@ html[dir="rtl"] .eyebrow{font-size:12px}
 <div id="flash" class="flash" aria-hidden="true"></div>
 <div id="dayDone" class="daydone" role="status" aria-live="polite">
   <span class="dd-en">Every task complete</span>
+  <span class="dd-ar">الحمد لله</span>
 </div>
 
 <script>
@@ -230,10 +265,12 @@ const I18N={
   en:{dir:"ltr",label:"English",eyebrow:"Ṭālib al-ʿIlm",title:"Miqāt",
       tagline:"Order your day around the prayers",progress:"Progress",addTask:"Add a task",
       export:"Export",import:"Import",clearDone:"Clear completed",doneMsg:"Every task complete",
+      moveTask:"Move task (arrows: reorder, left/right: change period)",
       periods:["Before Fajr","Fajr – Dhuhr","Dhuhr – Asr","Asr – Maghrib","Maghrib – Isha","After Isha"]},
   de:{dir:"ltr",label:"Deutsch",eyebrow:"Ṭālib al-ʿIlm",title:"Miqāt",
       tagline:"Ordne deinen Tag um die Gebete",progress:"Fortschritt",addTask:"Aufgabe hinzufügen",
       export:"Exportieren",import:"Importieren",clearDone:"Erledigte löschen",doneMsg:"Alle Aufgaben erledigt",
+      moveTask:"Aufgabe verschieben (Pfeile: sortieren, links/rechts: Zeitraum wechseln)",
       periods:["Vor Fajr","Fajr – Dhuhr","Dhuhr – Asr","Asr – Maghrib","Maghrib – Ischa","Nach Ischa"]}
 };
 const LANG_STORE="talib_planner_lang";
@@ -241,8 +278,10 @@ let LANG=(function(){try{const l=localStorage.getItem(LANG_STORE);if(I18N[l])ret
 function T(){return I18N[LANG];}
 const STORE="talib_planner_v3";
 const CHECK_SVG='<svg viewBox="0 0 12 12" fill="none" stroke="#2a1a10" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5L5 9l4.5-5"/></svg>';
+const GRIP_SVG='<svg viewBox="0 0 13 13" fill="currentColor"><circle cx="4" cy="2.5" r="1.4"/><circle cx="9" cy="2.5" r="1.4"/><circle cx="4" cy="6.5" r="1.4"/><circle cx="9" cy="6.5" r="1.4"/><circle cx="4" cy="10.5" r="1.4"/><circle cx="9" cy="10.5" r="1.4"/></svg>';
 
 let DATA=load();
+let pendingFocus=null;   // {type:"add",key} or {type:"handle",id} — restore focus after render
 
 function blank(){const o={};PERIODS.forEach(p=>o[p.key]=[]);return o;}
 function load(){
@@ -268,41 +307,61 @@ function render(){
     const name=T().periods[i];
     const block=document.createElement("div");
     block.className="block";block.style.setProperty("--accent",p.accent);
+    block.dataset.key=p.key;
     block.innerHTML=
       `<div class="bhead">
         <span class="pname">${name}</span>
         <span class="bcount"><b>${done}</b> / ${list.length}</span>
       </div>
-      <ul class="tasks"></ul>
+      <ul class="tasks" data-key="${p.key}"></ul>
       <div class="addrow">
-        <span class="plus">+</span>
-        <input class="addinput" type="text" maxlength="160" placeholder="${T().addTask}" aria-label="${T().addTask} — ${name}">
+        <button class="plus" aria-label="${T().addTask}">+</button>
+        <input class="addinput" type="text" maxlength="160" enterkeyhint="done" autocomplete="off" autocapitalize="sentences" placeholder="${T().addTask}" aria-label="${T().addTask} — ${name}">
       </div>`;
     const ul=block.querySelector(".tasks");
     list.forEach(t=>ul.appendChild(taskEl(p,t)));
     const input=block.querySelector(".addinput");
-    input.addEventListener("keydown",e=>{
-      if(e.key==="Enter"&&input.value.trim()){addTask(p.key,input.value.trim());input.value="";}
+    const commitAdd=()=>{const v=input.value.trim();if(v){pendingFocus={type:"add",key:p.key};addTask(p.key,v);}};
+    input.addEventListener("keydown",e=>{if(e.key==="Enter")commitAdd();});
+    block.querySelector(".plus").addEventListener("click",()=>{
+      if(input.value.trim())commitAdd();else input.focus();
     });
     root.appendChild(block);
   });
   updateOverall();
   applyCompletionStates(false);
+  restoreFocus();
+}
+function restoreFocus(){
+  if(!pendingFocus)return;
+  const f=pendingFocus;pendingFocus=null;
+  if(f.type==="add"){
+    const inp=document.querySelector(`.block[data-key="${f.key}"] .addinput`);
+    if(inp)inp.focus();
+  }else if(f.type==="handle"){
+    const h=document.querySelector(`.task[data-id="${f.id}"] .handle`);
+    if(h)h.focus();
+  }
 }
 function taskEl(p,t){
   const li=document.createElement("li");
   li.className="task"+(t.done?" done":"");li.dataset.id=t.id;
+  const handle=document.createElement("button");
+  handle.className="handle";handle.setAttribute("aria-label",T().moveTask);
+  handle.innerHTML=GRIP_SVG;
+  wireDrag(handle,li,t);
+  wireHandleKeys(handle,t);
   const check=document.createElement("button");
   check.className="check";check.setAttribute("aria-label",t.done?"Mark as not done":"Mark as done");
   check.innerHTML=CHECK_SVG;
   check.addEventListener("click",()=>toggleTask(p,t.id,li,check));
   const span=document.createElement("div");
-  span.className="ttext";span.textContent=t.t;span.title="Click to edit";
+  span.className="ttext";span.textContent=t.t;span.title="Tap to edit";
   span.addEventListener("click",()=>editTask(p,t,li,span));
   const del=document.createElement("button");
   del.className="del";del.setAttribute("aria-label","Delete task");del.textContent="×";
   del.addEventListener("click",()=>deleteTask(p.key,t.id,li));
-  li.append(check,span,del);
+  li.append(handle,check,span,del);
   return li;
 }
 
@@ -329,6 +388,145 @@ function editTask(p,t,li,span){
   const commit=()=>{const v=input.value.trim();if(v){t.t=v;save();}render();};
   input.addEventListener("keydown",e=>{if(e.key==="Enter")commit();else if(e.key==="Escape")render();});
   input.addEventListener("blur",commit);
+}
+
+/* ── Moving tasks ── */
+function findTask(id){
+  for(const p of PERIODS){
+    const i=DATA[p.key].findIndex(x=>x.id===id);
+    if(i>-1)return{key:p.key,index:i};
+  }
+  return null;
+}
+function moveTask(id,toKey,toIndex){
+  const loc=findTask(id);if(!loc)return;
+  const [task]=DATA[loc.key].splice(loc.index,1);
+  if(toIndex<0)toIndex=0;
+  if(toIndex>DATA[toKey].length)toIndex=DATA[toKey].length;
+  DATA[toKey].splice(toIndex,0,task);
+  save();render();
+}
+function wireHandleKeys(handle,t){
+  handle.addEventListener("keydown",e=>{
+    const loc=findTask(t.id);if(!loc)return;
+    const pi=PERIODS.findIndex(p=>p.key===loc.key);
+    let handled=true;
+    if(e.key==="ArrowUp"&&loc.index>0)          moveTask(t.id,loc.key,loc.index-1);
+    else if(e.key==="ArrowDown"&&loc.index<DATA[loc.key].length-1) moveTask(t.id,loc.key,loc.index+1);
+    else if(e.key==="ArrowLeft"&&pi>0)          moveTask(t.id,PERIODS[pi-1].key,DATA[PERIODS[pi-1].key].length);
+    else if(e.key==="ArrowRight"&&pi<PERIODS.length-1) moveTask(t.id,PERIODS[pi+1].key,DATA[PERIODS[pi+1].key].length);
+    else handled=false;
+    if(handled){e.preventDefault();pendingFocus={type:"handle",id:t.id};restoreFocus();}
+  });
+  handle.addEventListener("contextmenu",e=>e.preventDefault());
+}
+
+/* ── Drag & drop (pointer events — mouse + touch) ──
+   Geometry is cached once at drag start and the DOM is NOT reordered while
+   dragging (that caused layout shifts under the cursor → flicker on PC).
+   A drop-line indicator marks the target; the move is applied on release. */
+let drag=null;
+function wireDrag(handle,li,t){
+  handle.addEventListener("pointerdown",e=>{
+    if(drag)return;
+    if(e.button!==undefined&&e.button!==0)return;
+    e.preventDefault();
+    try{handle.setPointerCapture(e.pointerId);}catch(err){}
+    drag={pid:e.pointerId,li,id:t.id,text:t.t,startX:e.clientX,startY:e.clientY,
+          lastY:e.clientY,active:false,ghost:null,line:null,map:null,target:null,escHandler:null};
+  });
+  handle.addEventListener("pointermove",e=>{
+    if(!drag||e.pointerId!==drag.pid)return;
+    if(!drag.active){
+      if(Math.hypot(e.clientX-drag.startX,e.clientY-drag.startY)<5)return;
+      beginDrag();
+    }
+    drag.lastY=e.clientY;
+    positionGhost(e.clientX,e.clientY);
+    updateDrop(e.clientY);
+  });
+  handle.addEventListener("pointerup",e=>{if(drag&&e.pointerId===drag.pid)finishDrag(true);});
+  handle.addEventListener("pointercancel",e=>{if(drag&&e.pointerId===drag.pid)finishDrag(false);});
+}
+function buildMap(){
+  const sy=window.scrollY,sx=window.scrollX;
+  return [...document.querySelectorAll(".block")].map(bl=>{
+    const ul=bl.querySelector(".tasks");
+    const r=bl.getBoundingClientRect(),ur=ul.getBoundingClientRect();
+    return {
+      el:bl,key:bl.dataset.key,
+      top:r.top+sy,bottom:r.bottom+sy,
+      ulTop:ur.top+sy,ulLeft:ur.left+sx,ulWidth:ur.width,
+      items:[...ul.querySelectorAll(".task")].map(el=>{
+        const ir=el.getBoundingClientRect();
+        return {id:el.dataset.id,top:ir.top+sy,mid:ir.top+ir.height/2+sy,bottom:ir.bottom+sy};
+      })
+    };
+  });
+}
+function beginDrag(){
+  drag.active=true;
+  drag.map=buildMap();               // layout is frozen from here on, so this stays valid
+  drag.li.classList.add("dragging");
+  document.body.classList.add("dragging-now");
+  const g=document.createElement("div");
+  g.className="drag-ghost";g.textContent=drag.text;
+  document.body.appendChild(g);drag.ghost=g;
+  const line=document.createElement("div");
+  line.className="drop-line";
+  document.body.appendChild(line);drag.line=line;
+  drag.escHandler=e=>{if(e.key==="Escape")finishDrag(false);};
+  window.addEventListener("keydown",drag.escHandler,true);
+  autoScrollLoop();
+}
+function positionGhost(x,y){
+  if(drag&&drag.ghost){drag.ghost.style.left=x+"px";drag.ghost.style.top=y+"px";}
+}
+function updateDrop(clientY){
+  if(!drag||!drag.active)return;
+  const y=clientY+window.scrollY;
+  let tb=null,best=Infinity;
+  for(const b of drag.map){
+    if(y>=b.top&&y<=b.bottom){tb=b;break;}
+    const d=y<b.top?b.top-y:y-b.bottom;
+    if(d<best){best=d;tb=b;}
+  }
+  if(!tb)return;
+  // insertion index in the list WITHOUT the dragged task (matches moveTask's remove-then-insert)
+  const items=tb.items.filter(it=>it.id!==drag.id);
+  let idx=0;
+  for(const it of items){if(y>it.mid)idx++;else break;}
+  drag.target={key:tb.key,index:idx};
+  drag.map.forEach(b=>b.el.classList.toggle("drop-target",b===tb));
+  let ly;
+  if(items.length===0)ly=tb.ulTop+2;
+  else if(idx===0)ly=items[0].top;
+  else if(idx>=items.length)ly=items[items.length-1].bottom;
+  else ly=(items[idx-1].bottom+items[idx].top)/2;
+  drag.line.style.top=(ly-1.5)+"px";
+  drag.line.style.left=tb.ulLeft+"px";
+  drag.line.style.width=tb.ulWidth+"px";
+  drag.line.style.opacity="1";
+}
+function finishDrag(commit){
+  const d=drag;drag=null;
+  if(!d)return;
+  if(d.ghost)d.ghost.remove();
+  if(d.line)d.line.remove();
+  if(d.escHandler)window.removeEventListener("keydown",d.escHandler,true);
+  document.body.classList.remove("dragging-now");
+  document.querySelectorAll(".block.drop-target").forEach(b=>b.classList.remove("drop-target"));
+  d.li.classList.remove("dragging");
+  if(!d.active||!commit||!d.target)return;   // plain click on the handle: no move
+  moveTask(d.id,d.target.key,d.target.index);
+}
+function autoScrollLoop(){
+  if(!drag||!drag.active)return;
+  const y=drag.lastY,m=85;
+  if(y<m)window.scrollBy(0,-Math.ceil((m-y)/5));
+  else if(y>innerHeight-m)window.scrollBy(0,Math.ceil((y-(innerHeight-m))/5));
+  updateDrop(drag.lastY);
+  requestAnimationFrame(autoScrollLoop);
 }
 
 /* ── Counts / progress ── */
