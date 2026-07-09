@@ -297,6 +297,27 @@ function load(){
 function save(){try{localStorage.setItem(STORE,JSON.stringify(DATA));}catch(e){}}
 function uid(){try{return crypto.randomUUID();}catch(e){return Date.now()+"-"+Math.random().toString(36).slice(2,8);}}
 
+/* ── Daily reset ──
+   Each new calendar day, every task is unchecked again (the tasks
+   themselves stay). We remember the last day the planner was used and
+   compare it to today whenever the app loads, becomes visible, or ticks. */
+const DAY_STORE="talib_planner_day";
+function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function checkRollover(rerender){
+  let stored=null;
+  try{stored=localStorage.getItem(DAY_STORE);}catch(e){}
+  const today=todayStr();
+  if(!stored){try{localStorage.setItem(DAY_STORE,today);}catch(e){}return false;}
+  if(stored===today)return false;
+  // New day — clear every completion, keep the tasks.
+  let changed=false;
+  PERIODS.forEach(p=>{DATA[p.key].forEach(t=>{if(t.done){t.done=false;changed=true;}});});
+  try{localStorage.setItem(DAY_STORE,today);}catch(e){}
+  if(changed)save();
+  if(rerender)render();
+  return changed;
+}
+
 /* ── Render ── */
 function render(){
   const root=document.getElementById("blocks");
@@ -643,6 +664,14 @@ const langBtn=document.getElementById("langBtn"),langMenu=document.getElementByI
 langBtn.addEventListener("click",e=>{e.stopPropagation();langMenu.hidden=!langMenu.hidden;});
 langMenu.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{applyLang(b.dataset.lang);langMenu.hidden=true;}));
 document.addEventListener("click",e=>{if(!langMenu.hidden&&!langMenu.contains(e.target)&&e.target!==langBtn)langMenu.hidden=true;});
+
+/* Reset completions if the day changed since the last visit, then keep
+   watching — covers the app being left open across midnight or reopened
+   the next day without a full reload. */
+checkRollover(false);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkRollover(true);});
+window.addEventListener("focus",()=>checkRollover(true));
+setInterval(()=>checkRollover(true),60000);
 
 applyLang(LANG);
 </script>
