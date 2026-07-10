@@ -21,6 +21,7 @@
   --border:rgba(232,201,122,.20); --border2:rgba(232,201,122,.40);
   --sep:rgba(0,0,0,.18); --done:#7ff0b6;
   --ease:cubic-bezier(.4,0,.2,1);
+  --frame:100vw;   /* effective app width — full width on mobile, a phone-like column on desktop */
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;height:100%}
@@ -84,10 +85,10 @@ h1{font-family:'Cinzel',serif;font-weight:500;font-size:clamp(22px,6.4vw,29px);
 .rail{flex:1 1 auto;min-height:0;position:relative}
 #deck{position:relative;height:100%;display:flex;align-items:stretch;
   overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
-  padding:4px 7vw 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  padding:4px calc(var(--frame)*.07) 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch;
   overscroll-behavior:contain}
 #deck::-webkit-scrollbar{display:none}
-.card{flex:0 0 86vw;max-width:452px;scroll-snap-align:center;
+.card{flex:0 0 calc(var(--frame)*.86);scroll-snap-align:center;
   padding:0 4px;will-change:transform;transform-origin:center 42%}
 .cardInner{position:relative;height:100%;display:flex;flex-direction:column;overflow:hidden;
   background:linear-gradient(180deg,var(--panel2),var(--panel));
@@ -181,6 +182,33 @@ h1{font-family:'Cinzel',serif;font-weight:500;font-size:clamp(22px,6.4vw,29px);
 .bloom .en{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--soft)}
 .bloom .reflect{font-size:11.5px;letter-spacing:.02em;color:var(--muted);max-width:290px;
   line-height:1.75;text-align:center;opacity:.9;margin-top:-2px;padding:0 8px}
+
+@media (min-width:620px){
+  /* On larger screens, present the app as a centered phone-like column
+     instead of stretching edge to edge. Cards + peek scale to --frame. */
+  body{display:flex;align-items:center;justify-content:center;padding:24px;
+    background:
+      radial-gradient(85% 58% at 50% -8%, rgba(227,192,113,.13), transparent 60%),
+      radial-gradient(78% 70% at 50% 116%, rgba(126,77,52,.42), transparent 62%),
+      radial-gradient(130% 120% at 50% 45%, #2f2015 0%, #1c130c 66%, #110a05 100%)}
+  /* faint geometric tilework (the diamond / overlapping-squares motif),
+     softly faded toward the edges so it frames the device without shouting */
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='112'%20height='112'%20viewBox='0%200%20112%20112'%3E%3Cg%20fill='none'%20stroke='%23e3c071'%20stroke-width='1.1'%3E%3Crect%20x='35'%20y='35'%20width='42'%20height='42'/%3E%3Crect%20x='35'%20y='35'%20width='42'%20height='42'%20transform='rotate(45%2056%2056)'/%3E%3C/g%3E%3C/svg%3E");
+    background-size:112px 112px;opacity:.06;
+    -webkit-mask-image:radial-gradient(118% 84% at 50% 44%,#000 32%,transparent 80%);
+    mask-image:radial-gradient(118% 84% at 50% 44%,#000 32%,transparent 80%)}
+  .app{--frame:420px;width:420px;height:min(900px,calc(100dvh - 48px));
+    border-radius:32px;overflow:hidden;position:relative;
+    background:
+      radial-gradient(120% 46% at 50% 0%, rgba(196,134,98,.30), transparent 62%),
+      linear-gradient(180deg,#7a4d3a 0%,#65402f 55%,#573626 100%);
+    border:1px solid rgba(232,201,122,.16);
+    box-shadow:0 50px 130px -40px rgba(0,0,0,.78),0 0 0 1px rgba(0,0,0,.28),
+      0 0 80px -26px rgba(227,192,113,.20),inset 0 1px 0 rgba(255,255,255,.06)}
+  .bloom{width:420px;height:min(900px,calc(100dvh - 48px));inset:auto;left:50%;top:50%;
+    transform:translate(-50%,-50%);border-radius:32px;overflow:hidden}
+}
 
 @media (prefers-reduced-motion:reduce){
   *{transition-duration:.01ms!important;animation-duration:.01ms!important}
